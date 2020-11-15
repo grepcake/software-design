@@ -1,5 +1,6 @@
 package ru.akirakozov.sd.refactoring.web.servlet;
 
+import ru.akirakozov.sd.refactoring.HtmlWriter;
 import ru.akirakozov.sd.refactoring.model.domain.Product;
 import ru.akirakozov.sd.refactoring.model.repository.ProductRepository;
 
@@ -20,11 +21,14 @@ public class GetProductsServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        response.getWriter().println("<html><body>");
-        for (Product product : productRepository.findAll()) {
-            response.getWriter().println(product.getName() + "\t" + product.getPrice() + "</br>");
+        try (HtmlWriter w = new HtmlWriter(response.getWriter())) {
+            w.withHtml(() -> w.withBody(() -> {
+                for (Product product : productRepository.findAll()) {
+                    w.putText(product.getName() + "\t" + product.getPrice());
+                    w.putBreak();
+                }
+            }));
         }
-        response.getWriter().println("</body></html>");
         response.setContentType("text/html");
         response.setStatus(HttpServletResponse.SC_OK);
     }
