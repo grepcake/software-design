@@ -1,22 +1,26 @@
-package ru.akirakozov.sd.refactoring.servlet;
+package ru.akirakozov.sd.refactoring.web.servlet;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
+import ru.akirakozov.sd.refactoring.model.repository.ProductRepository;
+import ru.akirakozov.sd.refactoring.web.servlet.mock.MockQueryServlet;
+import ru.akirakozov.sd.refactoring.web.servlet.mock.MockServlet;
 
 import java.io.IOException;
-import java.sql.SQLException;
-import java.sql.Statement;
+
+import static ru.akirakozov.sd.refactoring.model.domain.ProductUtils.makeProduct;
 
 class QueryServletTest extends ServletTest {
-    private static final String DATABASE_FILLING_SQL
-            = "insert into product (name, price) values"
-            + "  ('soap', 100),"
-            + "  ('chewing gum', 30),"
-            + "  ('tasty sandwich', 150)";
+    @Override
+    void setupRepository() {
+        productRepository.save(makeProduct("soap", 100));
+        productRepository.save(makeProduct("chewing gum", 30));
+        productRepository.save(makeProduct("tasty sandwich", 150));
+    }
 
     @Override
-    void setupDatabase(Statement statement) throws SQLException {
-        statement.executeUpdate(DATABASE_FILLING_SQL);
+    MockServlet makeServlet(ProductRepository productRepository) {
+        return new MockQueryServlet(productRepository);
     }
 
     @Test
@@ -28,7 +32,7 @@ class QueryServletTest extends ServletTest {
                 + "<h1>Product with max price: </h1>\n"
                 + "tasty sandwich\t150</br>\n"
                 + "</body></html>\n";
-        testHtmlResponse(response -> new QueryServlet().doGet(request, response), expectedResponse);
+        testHtmlResponse(request, expectedResponse);
     }
 
     @Test
@@ -40,7 +44,7 @@ class QueryServletTest extends ServletTest {
                 + "<h1>Product with min price: </h1>\n"
                 + "chewing gum\t30</br>\n"
                 + "</body></html>\n";
-        testHtmlResponse(response -> new QueryServlet().doGet(request, response), expectedResponse);
+        testHtmlResponse(request, expectedResponse);
     }
 
     @Test
@@ -52,7 +56,7 @@ class QueryServletTest extends ServletTest {
                 + "Summary price: \n"
                 + "280\n"
                 + "</body></html>\n";
-        testHtmlResponse(response -> new QueryServlet().doGet(request, response), expectedResponse);
+        testHtmlResponse(request, expectedResponse);
     }
 
     @Test
@@ -64,7 +68,7 @@ class QueryServletTest extends ServletTest {
                 + "Number of products: \n"
                 + "3\n"
                 + "</body></html>\n";
-        testHtmlResponse(response -> new QueryServlet().doGet(request, response), expectedResponse);
+        testHtmlResponse(request, expectedResponse);
     }
 
 }
