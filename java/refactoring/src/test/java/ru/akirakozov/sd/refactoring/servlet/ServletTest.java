@@ -4,7 +4,9 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.springframework.mock.web.MockHttpServletResponse;
 
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -14,6 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static java.nio.file.StandardCopyOption.ATOMIC_MOVE;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public abstract class ServletTest {
     private static final String DB_URL = "jdbc:sqlite:test.db";
@@ -67,6 +70,16 @@ public abstract class ServletTest {
         }
         result.sort(null);
         return result;
+    }
+
+    protected void testHtmlResponse(GetRunner doGet,
+                                    String expectedHtmlResponse)
+            throws IOException {
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        doGet.runGet(response);
+        assertEquals(response.getStatus(), HttpServletResponse.SC_OK);
+        assertEquals(response.getContentType(), "text/html");
+        assertEquals(response.getContentAsString(), expectedHtmlResponse);
     }
 
     abstract void setupDatabase(Statement statement) throws SQLException;
